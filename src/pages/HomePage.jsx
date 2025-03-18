@@ -112,7 +112,7 @@ function HomePage() {
         <div>
             <h3>Mäng käib</h3>
             <input type="number" value={winnings} onChange={(e) => setWinnings(e.target.value)}/>
-            <h3>võiduni</h3>
+            <h3>punktini</h3>
             <button onClick={navigateToFourteenOne}>Alusta</button>
         </div>
         }
