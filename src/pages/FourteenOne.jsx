@@ -1,13 +1,19 @@
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
+import { usePlayers } from "../store/PlayerContext"
 
 function FourteenOne() {
 
-  const navigate = useNavigate()
+  const {
+    gameName,
+    starter,
+    opponent,
+    winnings,
+    setGameStartTime,
+    setGameEndTime
+  } = usePlayers()
 
-  const [starter, setStarter] = useState(() => localStorage.getItem("starter") || "")
-  const [opponent, setOpponent] = useState(() => localStorage.getItem("opponent") || "")
-  const [winnings, setWinnings] = useState(() => localStorage.getItem("winnings") || "")
+  const navigate = useNavigate()
 
   const [message, setMessage] = useState("")
 
@@ -27,6 +33,14 @@ function FourteenOne() {
 
   const [starterFoulCount, setStarterFoulCount] = useState(0)
   const [opponentFoulCount, setOpponentFoulCount] = useState(0)
+
+  const [gameStartTime, setGameStartTimeLocal] = useState("")
+
+  useEffect(() => {
+    const startTime = new Date().toISOString()
+    setGameStartTimeLocal(startTime)
+    setGameStartTime(startTime)
+  }, [setGameStartTime])
 
   useEffect(() => {
     localStorage.setItem("starter", starter)
@@ -64,7 +78,7 @@ function FourteenOne() {
   
     setStarterCurrentRun(prev => {
       const newRun = prev + 1
-      if (newRun > opponentMaxRun) setStarterMaxRun(newRun)
+      if (newRun > starterMaxRun) setStarterMaxRun(newRun)
       return newRun
     })
     setOpponentCurrentRun(0)
@@ -145,9 +159,67 @@ function FourteenOne() {
     setStarterFoulCount(0)
   }
 
+  const starterBack = () => {
+    setStarterScore (starterScore - 1)
+
+    if (starterCurrentRun > 0) {
+      if (starterCurrentRun === starterMaxRun) {
+        setStarterMaxRun(starterMaxRun - 1)
+      }
+      setStarterCurrentRun(starterCurrentRun - 1)
+    } else {
+      return
+    }
+
+    if (startingTable < 15){
+      setStartingTable (startingTable + 1)
+    }
+
+    if (starterCurrentRun > 0){
+    setStarterCurrentRun (starterCurrentRun - 1)
+    }
+  }
+
+  const opponentBack = () => {
+    setOpponentScore (opponentScore - 1)
+
+    if (opponentCurrentRun > 0) {
+      if (opponentCurrentRun === opponentMaxRun) {
+        setOpponentMaxRun(opponentMaxRun - 1)
+      }
+      setOpponentCurrentRun(opponentCurrentRun - 1)
+    } else {
+      return
+    }
+
+    if (startingTable < 15){
+      setStartingTable (startingTable + 1)
+    }
+
+    if (opponentCurrentRun > 0){
+    setOpponentCurrentRun (opponentCurrentRun - 1)
+    }
+  }
+
 
   const navigateToScore = () => {
     navigate ("/scores")
+    const endTime = new Date().toISOString()
+    setGameEndTime(endTime)
+
+    const gameHistory = JSON.parse(localStorage.getItem("gameHistory")) || [];
+    gameHistory.push({
+      gameName,
+      starter,
+      opponent,
+      starterScore,
+      opponentScore,
+      starterMaxRun,
+      opponentMaxRun,
+      gameStartTime: gameStartTime,
+      gameEndTime: endTime
+    })
+    localStorage.setItem("gameHistory", JSON.stringify(gameHistory))
   }
 
 
@@ -158,22 +230,29 @@ function FourteenOne() {
 
       <h1>{startingTable}</h1>
 
-      <div onClick={changeStarterToActive} style={{ color: starterIsActive ? 'red' : 'black' }}>
+      <div onClick={changeStarterToActive} style={{ backgroundColor: starterIsActive ? "yellowgreen" : '' }}>
         <h3>{starter}</h3>
         <h4>Skoor: {starterScore}</h4>
         <div>Aktiivne punktiseeria: {starterCurrentRun}</div>
         <div>Suurim punktiseeria: {starterMaxRun}</div>
        {starterFoulCount === 2 && <div>Vigu järjest: {starterFoulCount}</div>}
+       <br />
        {starterIsActive === true && <div>
           <button onClick={updateStarterScore} disabled={starterScore === Number(winnings) || opponentScore === Number(winnings)}>-</button>
           <button onClick={starterFoul} disabled={starterScore === Number(winnings) || opponentScore === Number(winnings)}>Viga</button>
+          <button onClick={starterBack} disabled={starterScore === Number(winnings) || opponentScore === Number(winnings)}>
+            <img src="/back.png" width={"15px"} alt="" />
+          </button>
         </div>}
       </div>
 
-      <div onClick={changeOpponentToActive} style={{ color: opponentIsActive ? 'red' : 'black' }}>
+      <div onClick={changeOpponentToActive} style={{ backgroundColor: opponentIsActive ? 'yellowgreen' : '' }}>
         {opponentIsActive === true && <div>
           <button onClick={updateOpponentScore} disabled={starterScore === Number(winnings) || opponentScore === Number(winnings)}>-</button>
           <button onClick={opponentFoul} disabled={starterScore === Number(winnings) || opponentScore === Number(winnings)}>Viga</button>
+          <button onClick={opponentBack} disabled={starterScore === Number(winnings) || opponentScore === Number(winnings)}>
+            <img src="/back.png" width={"15px"} alt="" />
+          </button>
         </div>}
         <h3>{opponent}</h3>
         <h4>Skoor: {opponentScore}</h4>

@@ -12,13 +12,17 @@ function AddPlayers() {
 
     const add = () => {
         const player= nameRef.current.value
+        if (nameRef.current.value === "") {
+          alert("Tühja nimega ei saa!")
+          return
+        }
         addPlayer(player)
         navigate ("/")
     }
   return (
     <div>
-        <label>Mängija nimi</label> <br />
-        <input ref={nameRef} type="text" /> <br />
+        <h3>Mängija nimi</h3>
+        <input className="player-input" ref={nameRef} type="text" /> <br /> <br />
         <button onClick={add}>Lisa</button>
     </div>
   )

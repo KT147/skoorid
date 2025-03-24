@@ -1,9 +1,11 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { useEffect } from "react"
+import { usePlayers } from "../store/PlayerContext"
 
 
 function HomePage() {
+
+    const { setGameName, players, starter, setStarter, opponent, setOpponent, winnings, setWinnings } = usePlayers()
 
     const [fourteenOne, setFourteenOne] = useState(false)
     const [eightBall, setEightBall] = useState(false)
@@ -13,27 +15,81 @@ function HomePage() {
 
     const navigate = useNavigate()
 
-    const [players, setPlayers] = useState([])
-    const [starter, setStarter] = useState("")
-    const [opponent, setOpponent] = useState("")
-
-    const [winnings, setWinnings] = useState("")
-
-   
-
-    useEffect(() => {
-        const stored = localStorage.getItem("players")
-        if (stored) {
-          setPlayers(JSON.parse(stored))
-        }
-      }, [])
+    const [checkboxChecked, setCheckboxChecked] = useState(false)
 
     const playFourteenOne = () => {
+        setGameName ("14-1")
         setFourteenOne(true)
         setEightBall(false)
         setNineBall(false)
         setTenBall(false)
         setSnooker(false)
+    }
+
+    const navigateToEight = () => {
+        localStorage.setItem("starter", starter)
+        localStorage.setItem("opponent", opponent)
+        localStorage.setItem("winnings", winnings)
+        navigate ("/eight-ball")
+    }
+
+
+    const playEightBall = () => {
+        setGameName ("8-pall")
+        setFourteenOne(false)
+        setEightBall(true)
+        setNineBall(false)
+        setTenBall(false)
+        setSnooker(false)
+    }
+
+    const navigateToNine = () => {
+        localStorage.setItem("starter", starter)
+        localStorage.setItem("opponent", opponent)
+        localStorage.setItem("winnings", winnings)
+        navigate ("/nine-ball")
+    }
+
+    const playNineBall = () => {
+        setGameName ("9-pall")
+        setFourteenOne(false)
+        setEightBall(false)
+        setNineBall(true)
+        setTenBall(false)
+        setSnooker(false)
+    }
+
+    const navigateToTen = () => {
+        localStorage.setItem("starter", starter)
+        localStorage.setItem("opponent", opponent)
+        localStorage.setItem("winnings", winnings)
+        navigate ("/ten-ball")
+    }
+
+    const playTenBall = () => {
+        setGameName ("10-pall")
+        setFourteenOne(false)
+        setEightBall(false)
+        setNineBall(false)
+        setTenBall(true)
+        setSnooker(false)
+    }
+
+    const navigateToSnooker = () => {
+        localStorage.setItem("starter", starter)
+        localStorage.setItem("opponent", opponent)
+        localStorage.setItem("winnings", winnings)
+        navigate ("/snooker")
+    }
+
+
+    const playSnooker = () => {
+        setGameName ("Snuuker")
+        setFourteenOne(false)
+        setEightBall(false)
+        setNineBall(false)
+        setTenBall(false)
+        setSnooker(true)
     }
 
     const navigateToFourteenOne = () => {
@@ -43,42 +99,13 @@ function HomePage() {
         navigate ("/fourteen-one")
     }
 
-
-    const playEightBall = () => {
-        setFourteenOne(false)
-        setEightBall(true)
-        setNineBall(false)
-        setTenBall(false)
-        setSnooker(false)
-    }
-
-    const playNineBall = () => {
-        setFourteenOne(false)
-        setEightBall(false)
-        setNineBall(true)
-        setTenBall(false)
-        setSnooker(false)
-    }
-
-    const playTenBall = () => {
-        setFourteenOne(false)
-        setEightBall(false)
-        setNineBall(false)
-        setTenBall(true)
-        setSnooker(false)
-    }
-
-
-    const playSnooker = () => {
-        setFourteenOne(false)
-        setEightBall(false)
-        setNineBall(false)
-        setTenBall(false)
-        setSnooker(true)
-    }
-
     const navigateToAddPlayers = () => {
         navigate ("/add")
+    }
+
+    const handleCheckboxChange = (e) => {
+        setCheckboxChecked(e.target.checked)
+        localStorage.setItem("checkboxChecked", e.target.checked)
     }
 
 
@@ -111,7 +138,7 @@ function HomePage() {
         {fourteenOne === true &&
         <div>
             <h3>Mäng käib</h3>
-            <input type="number" value={winnings} onChange={(e) => setWinnings(e.target.value)}/>
+            <input className="game-input" type="number" value={winnings} onChange={(e) => setWinnings(e.target.value)}/>
             <h3>punktini</h3>
             <button onClick={navigateToFourteenOne}>Alusta</button>
         </div>
@@ -120,36 +147,42 @@ function HomePage() {
         {eightBall === true &&
         <div>
             <h3>Mäng käib</h3>
-            <input type="number" value={winnings} onChange={(e) => setWinnings(e.target.value)}/>
+            <input className="game-input" type="number" value={winnings} onChange={(e) => setWinnings(e.target.value)}/>
             <h3>võiduni</h3>
-            <button>Alusta</button>
+            <button onClick={navigateToEight}>Alusta</button>
         </div>
         }
 
         {nineBall === true &&
         <div>
             <h3>Mäng käib</h3>
-            <input type="number" value={winnings} onChange={(e) => setWinnings(e.target.value)}/>
+            <input className="game-input" type="number" value={winnings} onChange={(e) => setWinnings(e.target.value)}/>
             <h3>võiduni</h3>
-            <button>Alusta</button>
+            <span>Võitja teeb avalöögi?</span>
+            <input type="checkbox" checked={checkboxChecked} onChange={handleCheckboxChange} />
+            <br />
+            <button onClick={navigateToNine}>Alusta</button>
         </div>
         }
 
         {tenBall === true &&
         <div>
             <h3>Mäng käib</h3>
-            <input type="number" value={winnings} onChange={(e) => setWinnings(e.target.value)}/>
+            <input className="game-input" type="number" value={winnings} onChange={(e) => setWinnings(e.target.value)}/>
             <h3>võiduni</h3>
-            <button>Alusta</button>
+            <span>Võitja teeb avalöögi?</span>
+            <input type="checkbox" checked={checkboxChecked} onChange={handleCheckboxChange}/>
+            <br />
+            <button onClick={navigateToTen}>Alusta</button>
         </div>
         }
 
         {snooker === true &&
         <div>
             <h3>Mäng käib</h3>
-            <input type="number" value={winnings} onChange={(e) => setWinnings(e.target.value)}/>
+            <input className="game-input" type="number" value={winnings} onChange={(e) => setWinnings(e.target.value)}/>
             <h3>võiduni</h3>
-            <button>Alusta</button>
+            <button onClick={navigateToSnooker}>Alusta</button>
         </div>
         }
 
