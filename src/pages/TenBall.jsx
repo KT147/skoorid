@@ -18,7 +18,8 @@ function TenBall() {
       const [starterScore, setStarterScore] = useState(0)
       const [opponentScore, setOpponentScore] = useState(0)
 
-      const [selectActivePlayer, setSelectActivePlayer] = useState(false)
+      const [selectActivePlayer, setSelectActivePlayer] = useState(starter)
+      const [checkboxChecked, setCheckboxChecked] = useState(false)
 
       const [message, setMessage] = useState("")
 
@@ -29,6 +30,13 @@ function TenBall() {
         setGameStartTimeLocal(startTime)
         setGameStartTime(startTime)
       }, [setGameStartTime])
+
+    useEffect(() => {
+        const savedCheckboxValue = localStorage.getItem("checkboxChecked")
+        if (savedCheckboxValue !== null) {
+            setCheckboxChecked(savedCheckboxValue === "true")
+        }
+    }, [])
     
       useEffect(() => {
         localStorage.setItem("starter", starter)
@@ -42,50 +50,33 @@ function TenBall() {
         localStorage.setItem("winnings", winnings)
       }, [winnings]);
 
-      const increaseStarterScore = () => {
-        setStarterScore(starterScore + 1)
-
-        if (selectActivePlayer === false) {
-            setSelectActivePlayer(true)
+      const increaseScore = (player) => {
+        if (player === starter) {
+            setStarterScore((prevScore) => prevScore + 1)
         } else {
-            setSelectActivePlayer(false)
+            setOpponentScore((prevScore) => prevScore + 1)
         }
+
+        if (checkboxChecked) {
+            setSelectActivePlayer(player)
+        } else {
+            setSelectActivePlayer((prevPlayer) => (prevPlayer === starter ? opponent : starter))
+        }
+    }
+
+    const decreaseScore = (player) => {
+      if (player === starter && starterScore > 0) {
+          setStarterScore((prevScore) => prevScore - 1)
+      } else if (player === opponent && opponentScore > 0) {
+          setOpponentScore((prevScore) => prevScore - 1)
       }
 
-      const decreaseStarterScore = () => {
-        if (starterScore > 0) {
-            setStarterScore(starterScore - 1)
-        }
-
-        if (selectActivePlayer === false) {
-            setSelectActivePlayer(true)
-        } else {
-            setSelectActivePlayer(false)
-        }
-      }
-
-      const increaseOpponentScore = () => {
-        setOpponentScore(opponentScore + 1)
-
-        if (selectActivePlayer === false) {
-            setSelectActivePlayer(true)
-        } else {
-            setSelectActivePlayer(false)
-        }
-      }
-
-
-      const decreaseOpponentScore = () => {
-        if (opponentScore > 0){
-        setOpponentScore(opponentScore - 1)
-        }
-
-        if (selectActivePlayer === false) {
-            setSelectActivePlayer(true)
-        } else {
-            setSelectActivePlayer(false)
-        }
-      }
+      if (checkboxChecked) {
+        setSelectActivePlayer(player)
+    } else {
+        setSelectActivePlayer((prevPlayer) => (prevPlayer === starter ? opponent : starter))
+    }
+  }
 
       const checkWinner = () => {
         if (starterScore === Number(winnings)) {
@@ -122,21 +113,21 @@ function TenBall() {
 
         <h2>{message}</h2>
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem'}}>
-            {selectActivePlayer === false && <img src="/arrow.png" height={"30px"} alt="" />}
-            <h2>{starter}</h2>
+          {selectActivePlayer === starter && <img src="/arrow.png" height={"30px"} alt="arrow" />}
+          <h2>{starter}</h2>
         </div>
         <h2>{starterScore}</h2>
-        <button onClick={increaseStarterScore} disabled={starterScore === Number(winnings) || opponentScore === Number(winnings)}>+</button>
-        <button onClick={decreaseStarterScore} disabled={starterScore === Number(winnings) || opponentScore === Number(winnings)}>-</button>
+        <button onClick={() => increaseScore(starter)} disabled={starterScore === Number(winnings) || opponentScore === Number(winnings)}>+</button>
+        <button onClick={() => decreaseScore(starter)} disabled={starterScore === Number(winnings) || opponentScore === Number(winnings)}>-</button>
         <br /><br /><br /><br />
 
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem'}}>
-            {selectActivePlayer === true && <img src="/arrow.png" height={"30px"} alt="" />}
-            <h2>{opponent}</h2>
+          {selectActivePlayer === opponent && <img src="/arrow.png" height={"30px"} alt="arrow" />}
+          <h2>{opponent}</h2>
         </div>
         <h2>{opponentScore}</h2>
-        <button onClick={increaseOpponentScore} disabled={starterScore === Number(winnings) || opponentScore === Number(winnings)}>+</button>
-        <button onClick={decreaseOpponentScore} disabled={starterScore === Number(winnings) || opponentScore === Number(winnings)}>-</button>
+        <button onClick={() => increaseScore(opponent)} disabled={starterScore === Number(winnings) || opponentScore === Number(winnings)}>+</button>
+        <button onClick={() => decreaseScore(opponent)} disabled={starterScore === Number(winnings) || opponentScore === Number(winnings)}>-</button>
         <br /><br /><br />
 
         <button onClick={navigateToScore}>Lõpeta mäng ja salvesta tulemused</button>

@@ -1,5 +1,5 @@
-import { useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { useState, useEffect } from "react"
+import { Link, useNavigate } from "react-router-dom"
 import { usePlayers } from "../store/PlayerContext"
 
 
@@ -16,6 +16,23 @@ function HomePage() {
     const navigate = useNavigate()
 
     const [checkboxChecked, setCheckboxChecked] = useState(false)
+    const [radioChoise, setRadioChoice] = useState(15)
+
+    useEffect(() => {
+        const savedCheckboxValue = localStorage.getItem("checkboxChecked")
+        if (savedCheckboxValue !== null) {
+            setCheckboxChecked(savedCheckboxValue === "true")
+        } else {
+            setCheckboxChecked(false)
+        }
+    }, [])
+
+    useEffect(() => {
+        const savedRadioChoice = localStorage.getItem("radioChoise");
+        if (savedRadioChoice !== null) {
+          setRadioChoice(Number(savedRadioChoice))
+        }
+      }, [])
 
     const playFourteenOne = () => {
         setGameName ("14-1")
@@ -108,6 +125,12 @@ function HomePage() {
         localStorage.setItem("checkboxChecked", e.target.checked)
     }
 
+    const handleRadioChange = (e) => {
+        const value = Number(e.target.value)
+        setRadioChoice(value)
+        localStorage.setItem("radioChoise", value)
+    }
+
 
   return (
     <div>
@@ -182,10 +205,18 @@ function HomePage() {
             <h3>Mäng käib</h3>
             <input className="game-input" type="number" value={winnings} onChange={(e) => setWinnings(e.target.value)}/>
             <h3>võiduni</h3>
+            <input type="radio" name="choice" value="15" onChange={handleRadioChange} checked={radioChoise === 15}/>15
+            <input type="radio" name="choice" value="10" onChange={handleRadioChange} checked={radioChoise === 10}/>10
+            <input type="radio" name="choice" value="6" onChange={handleRadioChange} checked={radioChoise === 6}/>6
+            <span>  punasega</span>
+            <br />
             <button onClick={navigateToSnooker}>Alusta</button>
         </div>
         }
-
+        <br /><br />
+        <Link to="/scores">
+            <button>Skoorid</button>   
+        </Link>
         <br /><br /><br /><br />
         <button onClick={navigateToAddPlayers}>Lisa mängijaid juurde</button>
 
