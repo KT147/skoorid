@@ -1,16 +1,28 @@
 import { useState } from "react"
 import { Link } from "react-router-dom"
+import { useEffect } from "react";
 
 function Scores() {
 
-  const gameHistory = JSON.parse(localStorage.getItem("gameHistory")) || []
+  // const gameHistory = JSON.parse(localStorage.getItem("gameHistory")) || []
+
+  useEffect(() => {
+    fetch("https://skoorid-database-default-rtdb.europe-west1.firebasedatabase.app/skoorid.json")
+      .then(res => res.json())
+      .then(json => {
+        const sortedGames = Object.values(json || []).sort((a, b) => new Date(b.gameEndTime) - new Date(a.gameEndTime));
+        setGameHistory(sortedGames);
+      })
+  }, [])
+
+  const [gameHistory, setGameHistory] = useState([])
 
   const [selectedPlayers, setSelectedPlayers] = useState(null)
 
   const filterGamesByPlayers = (player1, player2) => {
-    return gameHistory.filter(game => 
-      (game.starter === player1 && game.opponent === player2) ||
-      (game.starter === player2 && game.opponent === player1)
+    return gameHistory.filter(game =>
+      (game.starter.toLowerCase() === player1.toLowerCase() && game.opponent.toLowerCase() === player2.toLowerCase()) ||
+      (game.starter.toLowerCase() === player2.toLowerCase() && game.opponent.toLowerCase() === player1.toLowerCase())
     )
   }
 

@@ -25,11 +25,11 @@ function FourteenOne() {
   const [starterScore, setStarterScore] = useState(0)
   const [opponentScore, setOpponentScore] = useState(0)
 
-  const [starterCurrentRun, setStarterCurrentRun] = useState(0)
-  const [starterMaxRun, setStarterMaxRun] = useState(0)
+  const [starterCurrentRun, setStarterCurrentRun] = useState([0])
+  const [starterMaxRun, setStarterMaxRun] = useState([0])
 
-  const [opponentCurrentRun, setOpponentCurrentRun] = useState(0)
-  const [opponentMaxRun, setOpponentMaxRun] = useState(0) 
+  const [opponentCurrentRun, setOpponentCurrentRun] = useState([0])
+  const [opponentMaxRun, setOpponentMaxRun] = useState([0]) 
 
   const [starterFoulCount, setStarterFoulCount] = useState(0)
   const [opponentFoulCount, setOpponentFoulCount] = useState(0)
@@ -207,8 +207,7 @@ function FourteenOne() {
     const endTime = new Date().toISOString()
     setGameEndTime(endTime)
 
-    const gameHistory = JSON.parse(localStorage.getItem("gameHistory")) || [];
-    gameHistory.push({
+    const gameData = {
       gameName,
       starter,
       opponent,
@@ -216,10 +215,18 @@ function FourteenOne() {
       opponentScore,
       starterMaxRun,
       opponentMaxRun,
-      gameStartTime: gameStartTime,
+      gameStartTime,
       gameEndTime: endTime
+  };
+
+    fetch("https://skoorid-database-default-rtdb.europe-west1.firebasedatabase.app/skoorid.json", {
+      method : "POST",
+      headers: {
+        "Content-Type": "application/json"
+    },
+    body: JSON.stringify(gameData)
     })
-    localStorage.setItem("gameHistory", JSON.stringify(gameHistory))
+    .then(res => res.json())
   }
 
 

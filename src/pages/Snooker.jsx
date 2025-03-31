@@ -40,11 +40,11 @@ function Snooker() {
 
   const [totalPoints, setTotalPoints] = useState()
 
-  const [starterCurrentRun, setStarterCurrentRun] = useState([])
-  const [starterMaxRun, setStarterMaxRun] = useState([])
+  const [starterCurrentRun, setStarterCurrentRun] = useState([0])
+  const [starterMaxRun, setStarterMaxRun] = useState([0])
 
-  const [opponentCurrentRun, setOpponentCurrentRun] = useState([])
-  const [opponentMaxRun, setOpponentMaxRun] = useState([]) 
+  const [opponentCurrentRun, setOpponentCurrentRun] = useState([0])
+  const [opponentMaxRun, setOpponentMaxRun] = useState([0]) 
 
   const [gameStartTime, setGameStartTimeLocal] = useState("")
 
@@ -135,7 +135,8 @@ function Snooker() {
       const lastRunValue = updatedRun.pop();
   
       setStarterCurrentRun(updatedRun);
-      setStarterPoints(prevPoints => prevPoints - lastRunValue);
+      setStarterPoints(prevPoints => prevPoints - lastRunValue)
+
       setTotalPoints(prevTotalPoints => prevTotalPoints + lastRunValue);
   
       setStarterMaxRun(prevMax => {
@@ -154,6 +155,7 @@ function Snooker() {
   
       setOpponentCurrentRun(updatedRun);
       setOpponentPoints(prevPoints => prevPoints - lastRunValue);
+
       setTotalPoints(prevTotalPoints => prevTotalPoints + lastRunValue)
   
       setOpponentMaxRun(prevMax => {
@@ -215,7 +217,7 @@ function Snooker() {
 
   useEffect(() => {
     checkWinner()
-}, [starterScore, opponentScore])
+  }, [starterScore, opponentScore, winnings])
 
 
   const navigateToScore = () => {
@@ -223,8 +225,7 @@ function Snooker() {
     const endTime = new Date().toISOString()
     setGameEndTime(endTime)
 
-  const gameHistory = JSON.parse(localStorage.getItem("gameHistory")) || [];
-    gameHistory.push({
+    const gameData = {
       gameName,
       starter,
       opponent,
@@ -232,10 +233,18 @@ function Snooker() {
       opponentScore,
       starterMaxRun,
       opponentMaxRun,
-      gameStartTime: gameStartTime,
+      gameStartTime,
       gameEndTime: endTime
+  };
+
+    fetch("https://skoorid-database-default-rtdb.europe-west1.firebasedatabase.app/skoorid.json", {
+      method : "POST",
+      headers: {
+        "Content-Type": "application/json"
+    },
+    body: JSON.stringify(gameData)
     })
-    localStorage.setItem("gameHistory", JSON.stringify(gameHistory))
+    .then(res => res.json())
   }
 
   return (

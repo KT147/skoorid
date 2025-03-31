@@ -19,6 +19,7 @@ function AddPlayers() {
         addPlayer(player)
         navigate ("/")
     }
+
   return (
     <div>
         <h3>Mängija nimi</h3>

@@ -24,6 +24,7 @@ function EightBall() {
 
       const [gameStartTime, setGameStartTimeLocal] = useState("")
 
+
     useEffect(() => {
         const startTime = new Date().toISOString()
         setGameStartTimeLocal(startTime)
@@ -103,20 +104,28 @@ function EightBall() {
         navigate ("/scores")
         const endTime = new Date().toISOString()
         setGameEndTime(endTime)
-    
-        const gameHistory = JSON.parse(localStorage.getItem("gameHistory")) || [];
-        gameHistory.push({
+
+        const gameData = {
           gameName,
           starter,
           opponent,
           starterScore,
           opponentScore,
-          gameStartTime: gameStartTime,
+          gameStartTime,
           gameEndTime: endTime
+      };
+
+        fetch("https://skoorid-database-default-rtdb.europe-west1.firebasedatabase.app/skoorid.json", {
+          method : "POST",
+          headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(gameData)
         })
-        localStorage.setItem("gameHistory", JSON.stringify(gameHistory))
+        .then(res => res.json())
       }
 
+  
   return (
     <div>
 
