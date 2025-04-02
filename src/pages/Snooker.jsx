@@ -23,6 +23,8 @@ function Snooker() {
     { backgroundColor: "yellow", color: "black", value: 2 }
   ]
 
+  const [history, setHistory] = useState([]);
+
   const navigate = useNavigate()
 
   const [message, setMessage] = useState("")
@@ -74,6 +76,21 @@ function Snooker() {
     localStorage.setItem("winnings", winnings)
   }, [winnings]);
 
+  const saveHistory = () => {
+    setHistory(prevHistory => [
+        ...prevHistory,
+        {
+            starterPoints,
+            opponentPoints,
+            starterCurrentRun: [...starterCurrentRun],
+            opponentCurrentRun: [...opponentCurrentRun],
+            starterMaxRun,
+            opponentMaxRun,
+            totalPoints,
+        }
+    ])
+}
+
   const changeStarterToActive = () => {
     setStarterIsActive(true)
     setOpponentIsActive(false)
@@ -87,8 +104,10 @@ function Snooker() {
   }
 
   const raiseScore = (player, btn) => {
-    if (btn.value === 1){
-      setTotalPoints(totalPoints - 8)
+    saveHistory()
+
+    if (btn.value === 1) {
+        setTotalPoints(totalPoints - 8)
     }
 
     if (totalPoints === 27 && btn.value === 2)
@@ -105,69 +124,40 @@ function Snooker() {
       setTotalPoints(0)
 
     if (player === starter) {
-      setStarterPoints(starterPoints + btn.value)
-      setStarterCurrentRun(prevRun => {
-        const newRun = [...prevRun, btn.value]
-        const currentRunSum = newRun.reduce((acc, val) => acc + val, 0)
-        if (currentRunSum > starterMaxRun) {
-          setStarterMaxRun(currentRunSum);
-        }
-        return newRun
-      })
+        setStarterPoints(starterPoints + btn.value);
+        setStarterCurrentRun(prevRun => {
+            const newRun = [...prevRun, btn.value];
+            const currentRunSum = newRun.reduce((acc, val) => acc + val, 0)
+            setStarterMaxRun(prevMax => Math.max(prevMax, currentRunSum))
+            return newRun
+        })
     }
 
     if (player === opponent) {
-      setOpponentPoints(opponentPoints + btn.value)
-      setOpponentCurrentRun(prevRun => {
-        const newRun = [...prevRun, btn.value]
-        const currentRunSum = newRun.reduce((acc, val) => acc + val, 0);
-        if (currentRunSum > opponentMaxRun) {
-          setOpponentMaxRun(currentRunSum);
-        }
-        return newRun
-      })
-    } 
-  }
-
-  const undo = (player) => {
-    if (player === starter && starterCurrentRun.length > 0) {
-      const updatedRun = [...starterCurrentRun];
-      const lastRunValue = updatedRun.pop();
-  
-      setStarterCurrentRun(updatedRun);
-      setStarterPoints(prevPoints => prevPoints - lastRunValue)
-
-      setTotalPoints(prevTotalPoints => prevTotalPoints + lastRunValue);
-  
-      setStarterMaxRun(prevMax => {
-        if (prevMax === starterCurrentRun.reduce((acc, val) => acc + val, 0)) {
-          return updatedRun.length > 0 
-            ? Math.max(...updatedRun.map((_, i) => updatedRun.slice(0, i + 1).reduce((a, b) => a + b, 0)))
-            : 0;
-        }
-        return prevMax;
-      });
+        setOpponentPoints(opponentPoints + btn.value)
+        setOpponentCurrentRun(prevRun => {
+            const newRun = [...prevRun, btn.value]
+            const currentRunSum = newRun.reduce((acc, val) => acc + val, 0)
+            setOpponentMaxRun(prevMax => Math.max(prevMax, currentRunSum))
+            return newRun
+        })
     }
-  
-    if (player === opponent && opponentCurrentRun.length > 0) {
-      const updatedRun = [...opponentCurrentRun];
-      const lastRunValue = updatedRun.pop();
-  
-      setOpponentCurrentRun(updatedRun);
-      setOpponentPoints(prevPoints => prevPoints - lastRunValue);
+}
 
-      setTotalPoints(prevTotalPoints => prevTotalPoints + lastRunValue)
-  
-      setOpponentMaxRun(prevMax => {
-        if (prevMax === opponentCurrentRun.reduce((acc, val) => acc + val, 0)) {
-          return updatedRun.length > 0 
-            ? Math.max(...updatedRun.map((_, i) => updatedRun.slice(0, i + 1).reduce((a, b) => a + b, 0)))
-            : 0;
-        }
-        return prevMax;
-      });
-    }
-  };
+  const undo = () => {
+    if (history.length === 0) return
+
+    const lastState = history[history.length - 1];
+    setHistory(prevHistory => prevHistory.slice(0, -1))
+
+    setStarterPoints(lastState.starterPoints);
+    setOpponentPoints(lastState.opponentPoints);
+    setStarterCurrentRun(lastState.starterCurrentRun);
+    setOpponentCurrentRun(lastState.opponentCurrentRun);
+    setStarterMaxRun(lastState.starterMaxRun);
+    setOpponentMaxRun(lastState.opponentMaxRun);
+    setTotalPoints(lastState.totalPoints);
+};
   
 
   const freeBall = () => {
@@ -252,6 +242,7 @@ function Snooker() {
       <h2>{message}</h2>
       <div>Punkte laual: {totalPoints}</div>
       <div>Punktide vahe: {Math.abs(starterPoints - opponentPoints)}</div>
+      <button onClick={undo} disabled={starterScore === Number(winnings) || opponentScore === Number(winnings)}><img src="/back.png" style={{borderRadius: "50%", height: "15px"}} /></button>
         <div onClick={changeStarterToActive} style={{ backgroundColor: starterIsActive ? "yellowgreen" : '' }}>
         <h3>{starter}</h3>
         <h4>Skoor: {starterScore}</h4>
@@ -266,7 +257,6 @@ function Snooker() {
             {btn.value}
             </button>
         )}
-        {starterIsActive && <button onClick={() => undo (starter)} disabled={starterScore === Number(winnings) || opponentScore === Number(winnings)}><img src="/back.png" style={{borderRadius: "50%", height: "15px"}} /></button>}
         {starterIsActive &&<button onClick={freeBall} style={{padding: "10px 5px"}} disabled={starterScore === Number(winnings) || opponentScore === Number(winnings)}>Vaba pall</button>}
         <h4>Punktid: {starterPoints}</h4>
         {starterIsActive &&<div>Aktiivne punktiseeria: {starterCurrentRun.length > 0 ? starterCurrentRun.reduce((acc, val) => acc + val, 0) : 0}</div>}
@@ -274,6 +264,7 @@ function Snooker() {
         {starterIsActive === true && <div>
         </div>}
       </div>
+
 
       <div onClick={changeOpponentToActive} style={{ backgroundColor: opponentIsActive ? 'yellowgreen' : '' }}>
         <h3>{opponent}</h3>
@@ -289,7 +280,6 @@ function Snooker() {
             {btn.value}
             </button>
         )}
-        {opponentIsActive &&<button onClick={() => undo (opponent)} disabled={starterScore === Number(winnings) || opponentScore === Number(winnings)}><img src="/back.png" style={{borderRadius: "50%", height: "15px"}} /></button>}
         {opponentIsActive &&<button onClick={freeBall} style={{padding: "10px 5px"}} disabled={starterScore === Number(winnings) || opponentScore === Number(winnings)}>Vaba pall</button>}
         {opponentIsActive && <div>Aktiivne punktiseeria: {opponentCurrentRun.length > 0 ? opponentCurrentRun.reduce((acc, val) => acc + val, 0) : 0}</div>}
         <h4>Punktid: {opponentPoints}</h4>

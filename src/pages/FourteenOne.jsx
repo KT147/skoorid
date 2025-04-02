@@ -15,6 +15,8 @@ function FourteenOne() {
 
   const navigate = useNavigate()
 
+  const [history, setHistory] = useState([]);
+
   const [message, setMessage] = useState("")
 
   const [starterIsActive, setStarterIsActive] = useState(false)
@@ -25,11 +27,11 @@ function FourteenOne() {
   const [starterScore, setStarterScore] = useState(0)
   const [opponentScore, setOpponentScore] = useState(0)
 
-  const [starterCurrentRun, setStarterCurrentRun] = useState([0])
-  const [starterMaxRun, setStarterMaxRun] = useState([0])
+  const [starterCurrentRun, setStarterCurrentRun] = useState(0)
+  const [starterMaxRun, setStarterMaxRun] = useState(0)
 
-  const [opponentCurrentRun, setOpponentCurrentRun] = useState([0])
-  const [opponentMaxRun, setOpponentMaxRun] = useState([0]) 
+  const [opponentCurrentRun, setOpponentCurrentRun] = useState(0)
+  const [opponentMaxRun, setOpponentMaxRun] = useState(0) 
 
   const [starterFoulCount, setStarterFoulCount] = useState(0)
   const [opponentFoulCount, setOpponentFoulCount] = useState(0)
@@ -54,6 +56,23 @@ function FourteenOne() {
     localStorage.setItem("winnings", winnings)
   }, [winnings]);
 
+  const saveHistory = () => {
+    setHistory(prevHistory => [
+        ...prevHistory,
+        {
+            startingTable,
+            starterScore,
+            opponentScore,
+            starterCurrentRun,
+            opponentCurrentRun,
+            starterMaxRun,
+            opponentMaxRun,
+            starterFoulCount,
+            opponentFoulCount
+        }
+    ])
+}
+
 
   const changeStarterToActive = () => {
     setStarterIsActive(true)
@@ -70,6 +89,7 @@ function FourteenOne() {
 
 
   const updateStarterScore = () => {
+    saveHistory()
     const newScore = starterScore + 1
     setStarterScore(newScore)
     setStartingTable(prev => prev - 1)
@@ -94,6 +114,7 @@ function FourteenOne() {
 
 
   const updateOpponentScore = () => {
+    saveHistory()
     const newScore = opponentScore + 1
     setOpponentScore(newScore)
     setStartingTable(prev => prev - 1)
@@ -118,6 +139,7 @@ function FourteenOne() {
 
 
   const starterFoul = () => {
+    saveHistory()
     if (startingTable === 15 && starterScore === 0 && opponentScore === 0){
       setStarterScore(prevScore => prevScore - 2)
     } else {
@@ -134,11 +156,11 @@ function FourteenOne() {
       } 
       return newCount
     })
-    setOpponentFoulCount(0)
   }
 
 
   const opponentFoul = () => {
+    saveHistory()
     if (startingTable === 15 && starterScore === 0 && opponentScore === 0 ){
       setOpponentScore(prevScore => prevScore - 2)
     } else {
@@ -156,50 +178,24 @@ function FourteenOne() {
       return newCount
     })
   
-    setStarterFoulCount(0)
   }
 
-  const starterBack = () => {
-    setStarterScore (starterScore - 1)
+  const undo = () => {
+    if (history.length === 0) return
 
-    if (starterCurrentRun > 0) {
-      if (starterCurrentRun === starterMaxRun) {
-        setStarterMaxRun(starterMaxRun - 1)
-      }
-      setStarterCurrentRun(starterCurrentRun - 1)
-    } else {
-      return
-    }
+    const lastState = history[history.length - 1];
+    setHistory(prevHistory => prevHistory.slice(0, -1))
 
-    if (startingTable < 15){
-      setStartingTable (startingTable + 1)
-    }
-
-    if (starterCurrentRun > 0){
-    setStarterCurrentRun (starterCurrentRun - 1)
-    }
-  }
-
-  const opponentBack = () => {
-    setOpponentScore (opponentScore - 1)
-
-    if (opponentCurrentRun > 0) {
-      if (opponentCurrentRun === opponentMaxRun) {
-        setOpponentMaxRun(opponentMaxRun - 1)
-      }
-      setOpponentCurrentRun(opponentCurrentRun - 1)
-    } else {
-      return
-    }
-
-    if (startingTable < 15){
-      setStartingTable (startingTable + 1)
-    }
-
-    if (opponentCurrentRun > 0){
-    setOpponentCurrentRun (opponentCurrentRun - 1)
-    }
-  }
+    setStartingTable(lastState.startingTable)
+    setStarterScore(lastState.starterScore);
+    setOpponentScore(lastState.opponentScore);
+    setStarterCurrentRun(lastState.starterCurrentRun);
+    setOpponentCurrentRun(lastState.opponentCurrentRun);
+    setStarterMaxRun(lastState.starterMaxRun);
+    setOpponentMaxRun(lastState.opponentMaxRun);
+    setStarterFoulCount(lastState.starterFoulCount);
+    setOpponentFoulCount(lastState.opponentFoulCount);
+};
 
 
   const navigateToScore = () => {
@@ -237,6 +233,12 @@ function FourteenOne() {
 
       <h1>{startingTable}</h1>
 
+      <div>Mäng käib {winnings} punktini</div> <br />
+
+      <button onClick={undo} disabled={starterScore === Number(winnings) || opponentScore === Number(winnings)}>
+            <img src="/back.png" width={"15px"} alt="" />
+          </button>
+
       <div onClick={changeStarterToActive} style={{ backgroundColor: starterIsActive ? "yellowgreen" : '' }}>
         <h3>{starter}</h3>
         <h4>Skoor: {starterScore}</h4>
@@ -247,9 +249,6 @@ function FourteenOne() {
        {starterIsActive === true && <div>
           <button onClick={updateStarterScore} disabled={starterScore === Number(winnings) || opponentScore === Number(winnings)}>-</button>
           <button onClick={starterFoul} disabled={starterScore === Number(winnings) || opponentScore === Number(winnings)}>Viga</button>
-          <button onClick={starterBack} disabled={starterScore === Number(winnings) || opponentScore === Number(winnings)}>
-            <img src="/back.png" width={"15px"} alt="" />
-          </button>
         </div>}
       </div>
 
@@ -257,9 +256,6 @@ function FourteenOne() {
         {opponentIsActive === true && <div>
           <button onClick={updateOpponentScore} disabled={starterScore === Number(winnings) || opponentScore === Number(winnings)}>-</button>
           <button onClick={opponentFoul} disabled={starterScore === Number(winnings) || opponentScore === Number(winnings)}>Viga</button>
-          <button onClick={opponentBack} disabled={starterScore === Number(winnings) || opponentScore === Number(winnings)}>
-            <img src="/back.png" width={"15px"} alt="" />
-          </button>
         </div>}
         <h3>{opponent}</h3>
         <h4>Skoor: {opponentScore}</h4>
@@ -267,9 +263,6 @@ function FourteenOne() {
         <div>Suurim punktiseeria: {opponentMaxRun}</div>
         {opponentFoulCount === 2 && <div>Vigu järjest: {opponentFoulCount}</div>}
       </div>
-
-      <br /> <br />
-      <div>Mäng käib {winnings} punktini</div>
 
       <br />
       <button onClick={navigateToScore}>Lõpeta mäng ja salvesta tulemused</button>
